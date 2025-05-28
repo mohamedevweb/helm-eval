@@ -1,13 +1,12 @@
 service:
-  name: redis-master
   port: 6379
 
-
 deploy:
-  name: redis-master
   replicas: 1
-  containers:
-      image: redis:7.2-alpine
+  image: redis
 
+service_replica:
+  image: gcr.io/google_samples/gb-redisslave:v3
+  port: 6379
 
 

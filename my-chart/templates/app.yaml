@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.service.name | default "redis-master" }}
+  name: redis-master
   labels:
     app: redis
     tier: backend
@@ -18,14 +18,14 @@ spec:
 apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ .Values.deploy.name }}
+  name: redis-master
 spec:
   selector:
     matchLabels:
       app: redis
       role: master
       tier: backend
-  replicas: {{ .Values.deploy.replicas | default 1 }}
+  replicas: {{ .Values.deploy.replicas }}
   template:
     metadata:
       labels:
@@ -35,25 +35,25 @@ spec:
     spec:
       containers:
         - name: master
-          image: {{ .Values.deploy.containers.image | default "registry.k8s.io/redis:e2e" }}
+          image: {{ .Values.deploy.image}}  # or just image: redis
           resources:
             requests:
               cpu: 100m
               memory: 100Mi
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - containerPort: 6379
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-replica
+  name: redis-follower
   labels:
     app: redis
     tier: backend
     role: replica
 spec:
   ports:
-    - port: {{ .Values.service.port }}
+    - port: 6379
   selector:
     app: redis
     tier: backend
@@ -79,7 +79,7 @@ spec:
     spec:
       containers:
         - name: replica
-          image: gcr.io/google_samples/gb-redisslave:v1
+          image: {{ .Values.service_replica.image }}
           resources:
             requests:
               cpu: 100m
@@ -93,7 +93,7 @@ spec:
               # uncomment the line below:
               # value: env
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - containerPort: 6379
 ---
 apiVersion: v1
 kind: Service
